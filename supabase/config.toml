@@ -1,0 +1,2 @@
+[functions.worldbank-sync]
+verify_jwt = true
