@@ -28,8 +28,8 @@ jobs:
 
       - name: Build frontend
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://rqfxumeemzezqximdasx.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_lOz4g9uTdksznEUFzzx6Tg_H3MuxRna' }}
         run: npm run build
 
       - name: Deploy to Cloudflare Pages
