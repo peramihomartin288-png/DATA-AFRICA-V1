@@ -18,8 +18,8 @@ Deno.serve(async(req:Request)=>{
  let input:{indicator?:string;startYear?:number;endYear?:number};
  try{input=await req.json()}catch{return reply({error:"Invalid JSON"},400)}
  const indicator=input.indicator||"SP.POP.TOTL";
- const start=Math.max(1960,Math.min(2025,Number(input.startYear||2015)));
- const end=Math.max(start,Math.min(2025,Number(input.endYear||2024)));
+ const start=Math.max(1960,Math.min(2026,Number(input.startYear||2015)));
+ const end=Math.max(start,Math.min(2026,Number(input.endYear||2024)));
  if(!ALLOWED.includes(indicator))return reply({error:"Indicator not allowlisted"},400);
  const {data:source,error:se}=await db.from("sources").select("id").eq("code","WORLDBANK").single();
  const {data:metric,error:me}=await db.from("indicators").select("id,unit").eq("code",indicator).single();
@@ -40,7 +40,7 @@ Deno.serve(async(req:Request)=>{
    const payload=await response.json();const rows=Array.isArray(payload?.[1])?payload[1]:[];received+=rows.length;
    for(const row of rows){
     if(row.value===null||row.value===undefined||!Number.isFinite(Number(row.value)))continue;
-    const year=Number(row.date),valid=Number.isInteger(year)&&year>=1960&&year<=2025&&row.countryiso3code===c.iso3;
+    const year=Number(row.date),valid=Number.isInteger(year)&&year>=1960&&year<=2026&&row.countryiso3code===c.iso3;
     const value=Number(row.value),hashInput=JSON.stringify(row);
     const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(hashInput));
     const hash=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
@@ -49,7 +49,7 @@ Deno.serve(async(req:Request)=>{
     const status=valid?"verified":"flagged";
     const {data:ob,error:obError}=await db.from("observations").upsert({dataset_id:dataset.id,indicator_id:metric.id,country_iso3:c.iso3,raw_record_id:raw.id,period_start:year+"-01-01",period_end:year+"-12-31",value,unit:metric.unit,observation_status:"final",verification_status:status,quality_score:valid?95:20,source_url:endpoint.toString(),published:valid},{onConflict:"dataset_id,indicator_id,country_iso3,period_start,period_end"}).select("id").single();
     if(obError){errors.push(c.iso3+" "+row.date+" observation save failed");continue}
-    await db.from("verification_checks").insert({observation_id:ob.id,check_type:"source_country_year_numeric",status:valid?"pass":"fail",score:valid?95:20,details:{source:"World Bank API",country_match:row.countryiso3code===c.iso3,year_valid:Number.isInteger(year)&&year>=1960&&year<=2025,numeric_value:Number.isFinite(value)}});
+    await db.from("verification_checks").insert({observation_id:ob.id,check_type:"source_country_year_numeric",status:valid?"pass":"fail",score:valid?95:20,details:{source:"World Bank API",country_match:row.countryiso3code===c.iso3,year_valid:Number.isInteger(year)&&year>=1960&&year<=2026,numeric_value:Number.isFinite(value)}});
     if(valid)saved++;else flagged++;
    }
   }catch(e){errors.push(c.iso3+" "+String(e))}
