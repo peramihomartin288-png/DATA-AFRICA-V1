@@ -1,0 +1,1 @@
+drop index if exists public.observations_dataset_indicator_country_period_uidx;
